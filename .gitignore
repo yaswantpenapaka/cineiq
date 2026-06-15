@@ -1,0 +1,12 @@
+data/
+datasets/
+models/
+svd_model.pkl
+
+*.csv
+*.parquet
+*.zip
+*.pt
+*.pth
+*.pkl
+*.joblib
