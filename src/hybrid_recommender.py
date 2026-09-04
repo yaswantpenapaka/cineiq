@@ -33,6 +33,9 @@ movies['content'] = (
 tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
 tfidf_matrix = tfidf.fit_transform(movies['content'])
 
+# Index mapping for fast O(1) lookup
+movie_id_to_idx = {mid: i for i, mid in enumerate(movies['movieId'].values)}
+
 print("Hybrid Recommender ready.\n")
 
 
@@ -56,6 +59,8 @@ def get_hybrid_recommendations(user_id, n=10,
     # Take top 200 by SVD for re-ranking
     candidates = sorted(candidates, key=lambda x: x['svd_score'], reverse=True)[:200]
 
+    high_idx = movies[movies['movieId'].isin(user_high_rated)].index
+
     final_recs = []
 
     for cand in candidates:
@@ -64,15 +69,13 @@ def get_hybrid_recommendations(user_id, n=10,
 
         # === Content Similarity ===
         try:
-            idx = movies[movies['movieId'] == movie_id].index[0]
-            movie_vec = tfidf_matrix[idx]
-            high_idx = movies[movies['movieId'].isin(user_high_rated)].index
-
-            if len(high_idx) > 0:
+            idx = movie_id_to_idx.get(movie_id)
+            if idx is not None and len(high_idx) > 0:
+                movie_vec = tfidf_matrix[idx]
                 content_sim = float(np.mean(cosine_similarity(movie_vec, tfidf_matrix[high_idx])))
             else:
                 content_sim = 0.0
-        except:
+        except Exception:
             content_sim = 0.0
 
         # Normalize content similarity to rating scale
@@ -82,8 +85,10 @@ def get_hybrid_recommendations(user_id, n=10,
         hybrid_score = (0.7 * svd_score) + (0.3 * normalized_content)
 
         # Sentiment
-        sentiment_row = movies[movies['movieId'] == movie_id]
-        sentiment_score = float(sentiment_row['sentiment_score'].values[0]) if not sentiment_row.empty else 0.0
+        if idx is not None and 'sentiment_score' in movies.columns:
+            sentiment_score = float(movies.at[idx, 'sentiment_score'])
+        else:
+            sentiment_score = 0.0
 
         # Final Score
         final_score = (hybrid_weight * hybrid_score) + (sentiment_weight * max(0, sentiment_score))
