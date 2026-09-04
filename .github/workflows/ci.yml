@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-eval:
+    runs-on: ubuntu-latest
+
+    env:
+      MLFLOW_TRACKING_URI: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/cineiq.mlflow
+      MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+      MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies (scikit-surprise needs a compiler)
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install "Cython<3" "numpy==1.24.3"
+          pip install -r requirements.txt
+
+      - name: Configure DVC remote authentication
+        run: |
+          dvc remote modify origin --local auth basic
+          dvc remote modify origin --local user "${{ secrets.DAGSHUB_USERNAME }}"
+          dvc remote modify origin --local password "${{ secrets.DAGSHUB_TOKEN }}"
+
+      - name: Pull data and model via DVC
+        run: dvc pull
+
+      - name: Run unit tests
+        run: pytest tests/ -v
+
+      - name: Reproduce training pipeline (skips if nothing changed)
+        run: dvc repro
+
+      - name: Evaluate and gate model promotion
+        run: python scripts/eval_gate.py
+
+      - name: Push updated artifacts to DVC remote
+        if: success()
+        run: dvc push

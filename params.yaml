@@ -1,0 +1,15 @@
+# CineIQ training & evaluation parameters
+# Changing any value here and running `dvc repro` will retrain the model
+# with the new configuration (DVC detects the param diff automatically).
+
+train:
+  n_factors: 100
+  n_epochs: 25
+  lr_all: 0.005
+  reg_all: 0.02
+  test_size: 0.2
+  random_state: 42
+
+eval:
+  k: 10              # cutoff for Precision@K / Recall@K / NDCG@K
+  relevance_threshold: 4.0   # rating >= this counts as "relevant" for ranking metrics

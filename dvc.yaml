@@ -1,0 +1,13 @@
+stages:
+  train:
+    cmd: python src/train_model.py
+    deps:
+      - src/train_model.py
+      - data/movielens/ratings.csv
+    params:
+      - params.yaml:
+    outs:
+      - models/svd_model.pkl
+    metrics:
+      - metrics.json:
+          cache: false
