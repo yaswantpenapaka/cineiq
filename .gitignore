@@ -10,3 +10,7 @@ svd_model.pkl
 *.pth
 *.pkl
 *.joblib
+
+# Python cache
+__pycache__/
+*.py[cod]
