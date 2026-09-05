@@ -184,7 +184,14 @@ Browser opens at `http://localhost:8888`
 
 ---
 
-## Option B: Docker Setup
+## Option B: Docker Setup (Memory-Optimized)
+
+### Why Docker?
+- ✅ Containerized inference API
+- ✅ Reproducible environment
+- ✅ Easy deployment
+- ⚠️ **Single container only** (not both API + Streamlit)
+- ℹ️ Streamlit runs locally for development
 
 ### Step 1: Install Docker
 
@@ -196,29 +203,56 @@ Browser opens at `http://localhost:8888`
    docker run hello-world
    ```
 
-### Step 2: Build and Run with Docker Compose
+### Step 2: Build and Run with Docker Compose (API Only)
 
+**Terminal 1: Start Docker API**
 ```bash
 # 1. Navigate to project
 cd C:\Users\yaswa\cineiq
 
-# 2. Build images (first time only)
+# 2. Build image (first time only)
 docker-compose build
 
-# 3. Start all services
+# 3. Start API service only
 docker-compose up
 ```
 
 **What happens:**
-- API runs at `http://localhost:8000`
-- Streamlit runs at `http://localhost:8501`
-- Both services connected via network
+- API runs at `http://localhost:8000` (inside container)
+- API Docs at `http://localhost:8000/docs`
+- Memory usage: ~1.2-1.5GB (vs 6.5GB with 2 containers)
 - Logs displayed in terminal
 
-**To stop:** Press `Ctrl+C` or in new terminal:
+**Terminal 2: Start Streamlit Locally (NEW)**
 ```bash
-docker-compose down
+# 1. Open NEW terminal
+cd C:\Users\yaswa\cineiq
+
+# 2. Activate conda
+conda activate cineiq-env
+
+# 3. Run Streamlit
+streamlit run app/app.py
 ```
+
+**What happens:**
+- Streamlit runs at `http://localhost:8501` (local)
+- Automatically calls API at `http://localhost:8000`
+- Faster development (no container rebuild needed)
+- Uses host system RAM
+
+**To stop:**
+- Press `Ctrl+C` in each terminal
+
+### Why This Approach?
+
+| Aspect | Old (2 containers) | New (1 + local) |
+|--------|-------------------|-----------------|
+| Docker containers | 2 | 1 |
+| Total RAM | 6.5-7GB ❌ | 1.5GB ✅ |
+| Streamlit reload | Slow (rebuild) | Fast (instant) |
+| Development | Cumbersome | Easy |
+| Deployment | Both containerized | API only |
 
 ### Step 3: Docker Quick Commands
 
@@ -226,9 +260,8 @@ docker-compose down
 # View running containers
 docker ps
 
-# View logs
+# View API logs
 docker-compose logs -f api
-docker-compose logs -f streamlit
 
 # Stop services
 docker-compose stop
@@ -242,6 +275,28 @@ docker-compose down --rmi all
 # Rebuild after code changes
 docker-compose build --no-cache
 docker-compose up
+
+# Test API health
+curl http://localhost:8000/
+curl http://localhost:8000/info
+```
+
+### Step 4: Full Docker Workflow
+
+```bash
+# Terminal 1
+cd C:\Users\yaswa\cineiq
+docker-compose up
+
+# Terminal 2
+cd C:\Users\yaswa\cineiq
+conda activate cineiq-env
+streamlit run app/app.py
+
+# Both running:
+# - Streamlit: http://localhost:8501
+# - API: http://localhost:8000
+# - Docs: http://localhost:8000/docs
 ```
 
 ---

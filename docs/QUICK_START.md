@@ -1,6 +1,6 @@
 # 🚀 QUICK START - CineIQ v2.0
 
-Get up and running in 5 minutes! Follow these exact steps.
+Get up and running in **5 minutes**! Follow these exact steps.
 
 ---
 
@@ -46,37 +46,45 @@ python check_env.py
 
 ---
 
-## ⚡ Step 3: Run Streamlit UI (1 minute)
+## ⚡ Step 3: Run Streamlit UI (1 minute) - EASIEST
 
-**Option A: Single Terminal (Easy)**
+**Single Terminal:**
 ```bash
 streamlit run app/app.py
 ```
 
-→ Browser opens at `http://localhost:8501` automatically
-
-→ You're done! Start exploring! 🎉
+→ Browser opens at `http://localhost:8501` automatically  
+→ **Done! Start exploring!** 🎉
 
 ---
 
-## ⚡ Step 4: Run API (Optional, in separate terminal)
+## ⚡ Step 4: Run with Docker (OPTIONAL - Memory Optimized)
 
-**Open NEW Anaconda Prompt:**
+**Option A: API in Docker + Streamlit Locally (RECOMMENDED)**
+
+Terminal 1:
 ```bash
-cd C:\Users\yaswa\cineiq
-conda activate cineiq-env
-python -m uvicorn api.main:app --reload
+docker-compose up
+# API runs at http://localhost:8000
+# API Docs at http://localhost:8000/docs
 ```
 
-→ API runs at `http://localhost:8000`  
-→ Docs at `http://localhost:8000/docs`
+Terminal 2 (NEW - Run Streamlit locally):
+```bash
+conda activate cineiq-env
+streamlit run app/app.py
+# Streamlit at http://localhost:8501
+```
+
+✅ **Memory usage:** Only 1.2-1.5GB (optimized!)
 
 ---
 
-## ⚡ Step 5: Run Tests (Optional)
+## ⚡ Step 5: Run Tests (OPTIONAL)
 
 ```bash
-pytest tests/ -v
+pytest tests/ -v              # All tests
+pytest tests/ --cov=src       # With coverage report
 ```
 
 ---

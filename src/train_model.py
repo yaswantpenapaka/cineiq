@@ -91,6 +91,7 @@ def ranking_metrics(predictions, k: int, threshold: float):
         "n_users_evaluated": n_users,
     }
 
+mlflow.set_experiment("cineiq-svd")
 
 with mlflow.start_run() as run:
     mlflow.log_params({f"train.{k}": v for k, v in train_params.items()})
